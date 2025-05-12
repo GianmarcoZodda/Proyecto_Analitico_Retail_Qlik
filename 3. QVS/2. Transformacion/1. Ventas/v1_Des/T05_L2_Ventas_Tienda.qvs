@@ -1,0 +1,72 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Ventas_Tienda];
+SET vS.QVDFileName 	= L2_FACT_VENTAS_TIENDA.qvd;
+SET vS.PathFile 	= $(vQVDTraVentas);
+
+//-------------------------------------------------
+
+   
+ $(vS.TableName):
+ 
+   /*********	hago un load precedente para sacar margen bruto y neto	*********/
+   LOAD
+   		*,	//con esto tengo en cuenta todos los campos
+       MargenBruto - DiscountAmount as MargenNeto;
+   
+   LOAD
+   		*,
+        SalesAmount - TotalCost - ReturnAmount as MargenBruto;
+ 
+   LOAD
+   /*********	Dimensiones	*********/
+        //SalesKey,
+        //DateKey,
+        num(monthstart(DateKey)) as DateKey,
+        channelKey,
+        StoreKey,
+        ProductKey,
+        PromotionKey,
+        CurrencyKey,
+        UnitCost,
+        UnitPrice,
+        
+   /*********	Metricas	*********/
+         sum(SalesQuantity)		as	SalesQuantity,
+        sum(SalesAmount)		as	SalesAmount,
+        sum(ReturnQuantity)		as	ReturnQuantity,
+        sum(ReturnAmount)		as	ReturnAmount,
+        sum(DiscountQuantity)	as	DiscountQuantity,
+        sum(DiscountAmount)		as	DiscountAmount,
+        sum(TotalCost)			as	TotalCost
+        
+        
+//         SalesQuantity,
+//         ReturnQuantity,
+//         ReturnAmount,
+//         DiscountQuantity,
+//         DiscountAmount,
+//         TotalCost,
+//         SalesAmount
+
+
+    FROM [$(vQVDExtVtas)/L1_MYSQL_TRAN_VENTAS_TIENDA.qvd]
+    (qvd)
+    
+     GROUP BY
+    	num(monthstart(DateKey)), 	//as DateKey,		lo comento xq no se puede usar "as" en el group by
+        channelKey,
+        StoreKey,
+        ProductKey,
+        PromotionKey,
+        CurrencyKey,
+        UnitCost,
+        UnitPrice; 
+        
+        
+
+STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+
+DROP TABLE $(vS.TableName);
+
+

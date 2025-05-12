@@ -1,0 +1,24 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Tran_Tipo_De_Cambio];
+SET vS.QVDFileName 	= L1_MYSQL_FACT_TIPO_DE_CAMBIO.qvd;
+SET vS.PathFile 	= $(vQVDExtVtas);
+
+//-------------------------------------------------
+
+$(vS.TableName):
+    LOAD 
+        ExchangeRateKey, 
+        CurrencyKey, 
+        DateKey, 
+        AverageRate, 
+        EndOfDayRate;
+
+    SELECT 
+        *
+    FROM 
+        spanish.factexchangerate;
+
+	STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+    
+    DROP TABLE $(vS.TableName);

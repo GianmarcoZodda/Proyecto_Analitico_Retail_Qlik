@@ -1,0 +1,69 @@
+
+//-------------------------------------------------
+
+SET vS.TableName 	= [Maestra_Productos];
+SET vS.QVDFileName 	= L2_MAESTRA_PRODUCTOS.qvd;
+SET vS.PathFile 	= $(vQVDTraVentas);
+
+//-------------------------------------------------
+
+
+$(vS.TableName):
+    LOAD
+        ProductKey,
+        ProductLabel,
+        ProductName,
+        ProductDescription,
+        ProductSubcategoryKey,
+        Manufacturer,
+        BrandName,
+        ClassID,
+        ClassName,
+        StyleID,
+        StyleName,
+        ColorID,
+        ColorName,
+        Size,
+        SizeRange,
+        SizeUnitMeasureID,
+        Weight,
+        WeightUnitMeasureID,
+        UnitOfMeasureID,
+        UnitOfMeasureName,
+        StockTypeID,
+        StockTypeName,
+        UnitCost as Product_UnitCost,
+        UnitPrice as Product_UnitPrice,
+        AvailableForSaleDate,
+        StopSaleDate,
+        Status as Status_Producto,
+        ImageURL,
+        ProductURL
+    FROM [$(vQVDExtVtas)/L1_MYSQL_DIM_PRODUCTOS.qvd]
+    (qvd);
+    
+    
+LEFT JOIN ($(vS.TableName))
+    LOAD
+        ProductSubcategoryKey,
+        ProductSubcategoryLabel,
+        ProductSubcategoryName,
+        ProductSubcategoryDescription,
+        ProductCategoryKey
+    FROM [$(vQVDExtVtas)/L1_MYSQL_DIM_SUBCATEGORIA_PRODUCTOS.qvd]
+    (qvd);
+    
+
+LEFT JOIN ($(vS.TableName))
+    LOAD
+        ProductCategoryKey,
+        ProductCategoryLabel,
+        ProductCategoryName,
+        ProductCategoryDescription
+    FROM [$(vQVDExtVtas)/L1_MYSQL_DIM_CATEGORIA_PRODUCTOS.qvd]
+    (qvd);
+
+
+STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+
+DROP TABLE $(vS.TableName);

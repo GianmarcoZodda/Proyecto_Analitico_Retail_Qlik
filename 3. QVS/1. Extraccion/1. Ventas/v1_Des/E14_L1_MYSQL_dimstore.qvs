@@ -1,0 +1,45 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Dim_Tiendas];
+SET vS.QVDFileName 	= L1_MYSQL_DIM_TIENDAS.qvd;
+SET vS.PathFile 	= $(vQVDExtVtas);
+
+//-------------------------------------------------
+
+
+
+$(vS.TableName):
+    LOAD 
+        StoreKey, 
+        GeographyKey, 
+        StoreManager, 
+        StoreType, 
+        StoreName, 
+        StoreDescription, 
+        Status, 
+        OpenDate, 
+        CloseDate, 
+        EntityKey, 
+        ZipCode, 
+        ZipCodeExtension, 
+        StorePhone, 
+        StoreFax, 
+        AddressLine1, 
+        AddressLine2, 
+        CloseReason, 
+        EmployeeCount, 
+        SellingAreaSize, 
+        LastRemodelDate, 
+        GeoLocation, 
+        Geometry, 
+        ImageUrl;
+        
+    SELECT 
+        *
+    FROM 
+        spanish.dimstore;
+        
+	STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+    
+    
+    DROP TABLE $(vS.TableName);

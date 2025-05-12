@@ -1,0 +1,69 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Ventas_Online];
+SET vS.QVDFileName 	= L2_FACT_VENTAS_ONLINE.qvd;
+SET vS.PathFile 	= $(vQVDTraVentas);
+
+//-------------------------------------------------
+
+
+$(vS.TableName):
+
+   /*********	hago un load precedente para sacar margen bruto y neto	*********/
+   LOAD
+   		*,	//con esto tengo en cuenta todos los campos
+       MargenBruto - DiscountAmount as MargenNeto;
+   
+   LOAD
+   		*,
+        SalesAmount - TotalCost - ReturnAmount as MargenBruto;
+   
+   LOAD
+        /*********	Dimensiones	*********/
+        //DateKey,	aca se muestran todas las fechas
+        //DateKey as DateKey_Fact,	si hago esto, solo se muestran las fechas en las que hubo una venta
+        num(monthstart(DateKey)) as DateKey,
+        StoreKey,
+        ProductKey,
+        PromotionKey,
+        CurrencyKey,
+        CustomerKey,
+        UnitCost, 		//as VentasOnline_UnitCost,
+        UnitPrice, 		//as VentasOnline_UnitPrice,
+        
+        /*********	Metricas	*********/ 
+        sum(SalesQuantity)		as	SalesQuantity,
+        sum(SalesAmount)		as	SalesAmount,
+        sum(ReturnQuantity)		as	ReturnQuantity,
+        sum(ReturnAmount)		as	ReturnAmount,
+        sum(DiscountQuantity)	as	DiscountQuantity,
+        sum(DiscountAmount)		as	DiscountAmount,
+        sum(TotalCost)			as	TotalCost
+        
+         /*********	Otros	*********/
+//         SalesOrderNumber,
+//         SalesOrderLineNumber,
+//         OnlineSalesKey
+        
+    FROM [$(vQVDExtVtas)/L1_MYSQL_FACT_VENTAS_ONLINE.qvd]
+    (qvd)
+    
+    /******	agrupo los campos para reducir el tiempo de carga (y porque la consgna me lo permite de esta forma)	******/
+    GROUP BY
+    	num(monthstart(DateKey)), 	//as DateKey,		lo comento xq no se puede usar "as" en el group by
+        StoreKey,
+        ProductKey,
+        PromotionKey,
+        CurrencyKey,
+        CustomerKey,
+        UnitCost, 		//as VentasOnline_UnitCost,
+        UnitPrice; 
+
+
+STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+
+DROP TABLE $(vS.TableName);
+
+
+
+

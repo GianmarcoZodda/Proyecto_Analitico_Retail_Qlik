@@ -1,0 +1,42 @@
+LET vFechaIni = num(MakeDate(2015,1,1));
+
+LET vFechaFin = num(MakeDate(2050,12,31));
+
+
+
+//-------------------------------------------------
+
+SET vS.TableName 	= [Maestra_Calendario];
+SET vS.QVDFileName 	= L2_MAESTRA_CALENDARIO.qvd;
+SET vS.PathFile 	= $(vQVDTraVentas);
+
+//-------------------------------------------------
+
+
+//practica de load precedentes (el ultimo load se carga primero, y los de ariva van usando el q esta abajo
+
+$(vS.TableName):
+	Load
+    	//DateKey,
+        *,			//con este *, hago mencion a todos los campos del load de abajo	
+        Num(Mes) as Mes_Num,
+        Num(Periodo) as Periodo_Num;
+
+	Load
+    	DateKey,
+        Date(DateKey, 'MMM, YYYY') as Fecha, //no le pongo dd (dia) porqque todos van a ser 1, xq los llevo a principio de mes
+        Year(DateKey) as Anio,
+        Month(DateKey) as Mes,
+        //Day(DateKey) as Dia
+        Date(MonthStart(DateKey), 'YYYYMM') as Periodo;
+
+	Load
+    	$(vFechaIni) + recno()-1 as DateKey
+    AutoGenerate
+    	$(vFechaFin) - $(vFechaIni);
+        
+        
+        
+STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+
+DROP TABLE $(vS.TableName);

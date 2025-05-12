@@ -1,0 +1,26 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Dim_Categoria_Productos];
+SET vS.QVDFileName 	= L1_MYSQL_DIM_CATEGORIA_PRODUCTOS.qvd;
+SET vS.PathFile 	= $(vQVDExtVtas);
+
+//-------------------------------------------------
+
+
+$(vS.TableName):
+    LOAD 
+        ProductCategoryKey, 
+        ProductCategoryLabel, 
+        ProductCategoryName, 
+        ProductCategoryDescription;
+
+    SELECT 
+        *
+    FROM 
+        spanish.dimproductcategory;
+
+
+
+STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+
+DROP TABLE $(vS.TableName);

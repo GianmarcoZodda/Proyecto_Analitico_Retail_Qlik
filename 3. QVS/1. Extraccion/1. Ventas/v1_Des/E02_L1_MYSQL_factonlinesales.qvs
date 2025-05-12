@@ -1,0 +1,37 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Tran_Ventas_Online];
+SET vS.QVDFileName 	= L1_MYSQL_FACT_VENTAS_ONLINE.qvd;
+SET vS.PathFile 	= $(vQVDExtVtas);
+
+//-------------------------------------------------
+
+$(vS.TableName):
+    LOAD 
+        OnlineSalesKey, 
+        DateKey, 
+        StoreKey, 
+        ProductKey, 
+        PromotionKey, 
+        CurrencyKey, 
+        CustomerKey, 
+        SalesOrderLineNumber, 
+        SalesQuantity, 
+        SalesAmount, 
+        ReturnQuantity, 
+        ReturnAmount, 
+        DiscountQuantity, 
+        DiscountAmount, 
+        TotalCost, 
+        UnitCost, 
+        UnitPrice, 
+        SalesOrderNumber;
+
+    SELECT 
+        *
+    FROM 
+        spanish.factonlinesales;
+
+	STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+    
+    DROP TABLE $(vS.TableName);

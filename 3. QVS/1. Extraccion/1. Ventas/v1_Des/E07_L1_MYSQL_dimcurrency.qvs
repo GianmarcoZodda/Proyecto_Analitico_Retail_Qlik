@@ -1,0 +1,27 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Dim_Tipo_Moneda];
+SET vS.QVDFileName 	= L1_MYSQL_DIM_TIPO_MONEDA.qvd;
+SET vS.PathFile 	= $(vQVDExtVtas);
+
+//-------------------------------------------------
+
+
+$(vS.TableName):
+    LOAD 
+        CurrencyKey, 
+        CurrencyLabel, 
+        CurrencyName, 
+        CurrencyDescription, 
+        ETLLoadID, 
+        LoadDate, 
+        UpdateDate;
+
+    SELECT 
+        *
+    FROM 
+        spanish.dimcurrency;
+
+	STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+    
+    DROP TABLE $(vS.TableName);

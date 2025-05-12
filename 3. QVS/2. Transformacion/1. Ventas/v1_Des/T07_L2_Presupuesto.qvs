@@ -1,0 +1,120 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Presupuesto];
+SET vS.QVDFileName 	= L2_FACT_PRESUPUESTO.qvd;
+SET vS.PathFile 	= $(vQVDTraVentas);
+
+//-------------------------------------------------
+
+
+
+[Tbl_Temp1]:		//tabla temporal 1, es decir, se va a leer, cargar en memoria y se utiliza despues con un RESIDENT, pero no la deseo almacenar luego
+  Crosstable(DateKey, Presupuesto, 3)		//recibe 3 params, el nombre que le voy a poner a cada num (44317, 44348, etc; el nombre del valor para cada numero, y a partir de que registrro lo tiene que hacer. en este caso es 3, xq antes tengo a chanelkey, productkey y asi...
+  LOAD
+//         ChannelKey,
+//         StoreKey,
+//         ProductKey,
+//         "44317",
+//         "44348",
+//         "44378",
+//         "44409",
+//         "44440",
+//         "44470",
+//         "44501",
+//         "44531",
+//         "44562",
+//         "44593",
+//         "44621",
+//         "44652",
+//         "44682",
+//         "44713",
+//         "44743",
+//         "44774",
+//         "44805",
+//         "44835",
+//         "44866",
+//         "44896",
+//         "44927",
+//         "44958",
+//         "44986",
+//         "45017",
+//         "45047",
+//         "45078",
+//         "45108",
+//         "45139",
+//         "45170",
+//         "45200",
+//         "45231",
+//         "45261",
+//         "45292",
+//         "45323",
+//         "45352",
+//         "45383"
+
+			*		//reemplazo todo por "*", porque si despues siguen agregando mas numero abajo (en realidad, representan meses), lo voy a tener q cambiar yo manuialmente
+    FROM [$(vQVDExtVtas)/L1_EXCEL_PRESUPUESTO.qvd]
+    (qvd);
+    
+    
+
+    
+    
+[Tbl_Temp2]:
+NoConcatenate // para que no contcatene esta con la temporal, y haga el drop del final
+  	LOAD
+        ChannelKey,
+        StoreKey,
+        ProductKey,
+		num#(DateKey) as DateKey, //le aclaro con num xq me estaba tomando este campo como string. con"#", lo estoy forzando a hacerlo. esto xq el datekey de otra tabla es un numero, y no puedo hacer un join si en un atabla mi ok es string y en otra tabla la pk (con mismo nombre) es otro tipo de dato
+		Presupuesto as Presupuesto_EUR	//xq en esta tabla, es en euros
+    RESIDENT Tbl_Temp1
+    WHERE Presupuesto <> 0; //siempre que presupuesto sea distinto de cero "0"
+    DROP TABLE Tbl_Temp1;
+    
+	//[Tipo_Cambio]:    siempre q uso avg(), sum(), where, etc,  tengo q usar group by al final, con los campos restantes
+    LEFT JOIN(Tbl_Temp2)
+    LOAD
+        //ExchangeRateKey,	no me sirve
+        //CurrencyKey,		lo comento xq solo me quedo con los 1, no me quedo con todos
+        num(monthstart(DateKey)) as DateKey,	//lo hago para llevar las fechas al 1ero de c/ mes, y despues con num las llevo a un numero
+        avg(AverageRate)		 as AverageRate
+        //EndOfDayRate		no lo utilizo, x eso lo comento
+    FROM [$(vQVDExtVtas)/L1_MYSQL_FACT_TIPO_DE_CAMBIO.qvd]    (qvd)
+    WHERE CurrencyKey = 1	//me quedo con 1 xq representa al dolar, que me pide el ejercicio
+	GROUP BY num(monthstart(DateKey));		//no se usa "as" dentro del group by
+
+    
+    
+$(vS.TableName):
+NoConcatenate 
+  	LOAD
+        ChannelKey,
+        StoreKey,
+        ProductKey,
+		DateKey, 
+		Presupuesto_EUR, 
+        Presupuesto_EUR * AverageRate as Presupuesto_USD
+    RESIDENT Tbl_Temp2;
+    DROP TABLE Tbl_Temp2;    
+    
+    
+    
+// [Tipo_Moneda]:  
+//     LOAD
+//         CurrencyKey,
+//         CurrencyLabel,
+//         CurrencyName,
+//         CurrencyDescription
+// //         ETLLoadID,
+// //         LoadDate,
+// //         UpdateDate
+//     FROM [$(vQVDExtVtas)/L1_MYSQL_DIM_TIPO_MONEDA.qvd]
+//     (qvd);
+  
+    
+STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+
+DROP TABLE $(vS.TableName);
+    
+    
+

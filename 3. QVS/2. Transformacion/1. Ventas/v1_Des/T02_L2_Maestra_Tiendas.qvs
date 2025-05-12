@@ -1,0 +1,57 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Maestra_Tiendas];
+SET vS.QVDFileName 	= L2_MAESTRA_TIENDAS.qvd;
+SET vS.PathFile 	= $(vQVDTraVentas);
+
+//-------------------------------------------------
+
+
+
+$(vS.TableName):
+    LOAD
+        StoreKey,
+        GeographyKey as GeographyKey_Tienda,
+        StoreManager,
+        StoreType,
+        StoreName,
+        StoreDescription,
+        Status as Status_Tienda,
+        OpenDate,
+        CloseDate,
+        EntityKey,
+        ZipCode,
+        ZipCodeExtension,
+        StorePhone,
+        StoreFax,
+        AddressLine1 as AddressLine1_Tienda,
+        AddressLine2 as AddressLine2_Tienda,
+        CloseReason,
+        EmployeeCount,
+        SellingAreaSize,
+        LastRemodelDate,
+        GeoLocation,
+        //Geometry,
+        ImageUrl
+    FROM [$(vQVDExtVtas)/L1_MYSQL_DIM_TIENDAS.qvd](qvd);
+    
+    LEFT JOIN ($(vS.TableName))
+    LOAD
+        GeographyKey as GeographyKey_Tienda,
+       GeographyTypeKey as GeographyTypeKey_Tienda,
+        GeographyType as GeographyType_Tienda,
+        ContinentName as ContinentName_Tienda,
+        CityName as CityName_Tienda,
+        StateProvinceName as StateProvinceName_Tienda,
+        RegionCountryName as RegionCountryName_Tienda
+        //Geometry,
+        //ETLLoadID,
+        //LoadDate,
+        //UpdateDate
+    FROM [$(vQVDExtVtas)/L1_MYSQL_DIM_GEOGRAFIA.qvd] (qvd);
+
+
+STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+
+DROP TABLE $(vS.TableName);
+ 

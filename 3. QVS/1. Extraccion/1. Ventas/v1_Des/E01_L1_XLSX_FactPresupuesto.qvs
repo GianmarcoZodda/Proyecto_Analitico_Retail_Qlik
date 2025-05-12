@@ -1,0 +1,17 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Tran_Presupuesto];
+SET vS.QVDFileName 	= L1_EXCEL_PRESUPUESTO.qvd;
+SET vS.PathFile 	= $(vQVDExtVtas);
+
+//-------------------------------------------------
+
+$(vS.TableName):
+    LOAD
+      *
+    FROM [$(vQVDExtExternosVtas)/Contoso_-_Budget.xlsx]
+    (ooxml, embedded labels, header is 1 lines, table is Budget);
+
+STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+
+DROP TABLE $(vS.TableName);

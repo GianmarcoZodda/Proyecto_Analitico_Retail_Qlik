@@ -1,0 +1,125 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Fact_Ventas_Consolidada];
+SET vS.QVDFileName 	= L3_FACT_VENTAS_CONSOLIDADA.qvd;
+SET vS.PathFile 	= $(vQVDTraVentas);
+
+//-------------------------------------------------
+
+
+//vtas_tienda
+[Tbl_Temp1]:
+    LOAD
+    	'Vtas_Tienda' as Flg_Tipo_Transaccion,
+        DateKey,
+        channelKey,
+        StoreKey,
+        ProductKey,
+        PromotionKey,
+        CurrencyKey,
+        UnitCost,
+        UnitPrice,
+        SalesQuantity,
+        SalesAmount,
+        ReturnQuantity,
+        ReturnAmount,
+        DiscountQuantity,
+        DiscountAmount,
+        TotalCost,
+        MargenBruto,
+        MargenNeto
+    FROM [$(vQVDTraVentas)/L2_FACT_VENTAS_TIENDA.qvd]    (qvd);
+    
+    CONCATENATE	//uno las 2 tablas, una encima de la otra, es decir, solo sumo los registros
+    
+    LOAD
+    	'Vtas_Online' as Flg_Tipo_Transaccion,
+        DateKey,
+        StoreKey,
+        ProductKey,
+        PromotionKey,
+        CurrencyKey,
+        CustomerKey,
+        UnitCost,
+        UnitPrice,
+        SalesQuantity,
+        SalesAmount,
+        ReturnQuantity,
+        ReturnAmount,
+        DiscountQuantity,
+        DiscountAmount,
+        TotalCost,
+        MargenBruto,
+        MargenNeto
+    FROM [$(vQVDTraVentas)/L2_FACT_VENTAS_ONLINE.qvd]    (qvd);		//cambio la variable, porque lo leo de transformacion, no de extraccion
+    
+    
+    
+    /*********	Tabla de Mapeo *************/
+    
+    [Map_Tipo_Cambio]:
+    Mapping	//es una tabla que solo puede usar 2 campos, el primero relaciona y el 2do se agrega a la tabla relacionada. Esta tabla se borra sola, no hace falta hacer drop
+      LOAD
+        num(monthstart(DateKey)) as DateKey,	
+        avg(AverageRate)		 as AverageRate
+      FROM [$(vQVDExtVtas)/L1_MYSQL_FACT_TIPO_DE_CAMBIO.qvd]    (qvd)
+      WHERE CurrencyKey = 1
+      GROUP BY num(monthstart(DateKey));		
+    
+    /**********************************/
+    
+    
+ $(vS.TableName):
+ 	NoConcatenate
+    Load
+    *,
+    //APPLYMAP('Map_Tipo_Cambio', DateKey, 'No Encontrado')				AS	AverageRate,		//3 params: 1) en ' ' el nombre de la tabla mapa, 2) pk compartida por las tablas, 3)que devuelvo en caso de no encontrar alguna de las pks, (en este caso, de que no coincida alguna fecha). // despues pongo AS (nombre del campo a insertar), para poder incrustarlo en la tabla que hago el apply 
+    UnitCost_EUR		*	AverageRateAjust		AS	UnitCost_USD,
+    UnitPrice_EUR		*	AverageRateAjust		AS	UnitPrice_USD,
+    SalesAmount_EUR		*	AverageRateAjust		AS	SalesAmount_USD,
+    ReturnAmount_EUR	*	AverageRateAjust		AS	ReturnAmount_USD,
+    TotalCost_EUR		*	AverageRateAjust		AS	TotalCost_USD,
+    MargenBruto_EUR		*	AverageRateAjust		AS 	MargenBruto_USD,
+    MargenNeto_EUR		*	AverageRateAjust		AS 	MargenNeto_USD;
+  
+  		Load
+        	*,
+            if(AverageRate='No Encontrado', peek(AverageRateAjust), AverageRate)	as	AverageRateAjust
+            ;
+        
+        LOAD
+          Flg_Tipo_Transaccion,
+          DateKey,
+          StoreKey,
+          ProductKey,
+          PromotionKey,
+          CurrencyKey,
+          channelKey											as		ChannelKey,		//campo de ventas tienda
+          CustomerKey,																	//campo de ventas online
+          UnitCost 												as		UnitCost_EUR,
+          UnitPrice												as		UnitPrice_EUR,
+          SalesQuantity,
+          SalesAmount											as		SalesAmount_EUR,
+          ReturnQuantity,
+          ReturnAmount											as		ReturnAmount_EUR,
+          DiscountQuantity,
+          APPLYMAP('Map_Tipo_Cambio', DateKey, 'No Encontrado')	AS		AverageRate,
+          DiscountAmount										as		DiscountAmount_EUR,
+          TotalCost												as		TotalCost_EUR,
+          MargenBruto											as		MargenBruto_EUR,
+          MargenNeto											as		MargenNeto_EUR
+      Resident [Tbl_Temp1];
+      Drop Table [Tbl_Temp1];
+      
+      
+      DROP FIELD AverageRate from $(vS.TableName);
+      RENAME FIELD AverageRateAjust TO AverageRate;
+    
+    
+STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+
+DROP TABLE $(vS.TableName);
+
+    
+    
+

@@ -1,0 +1,36 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Tran_Ventas_Tienda];
+SET vS.QVDFileName 	= L1_MYSQL_TRAN_VENTAS_TIENDA.qvd;
+SET vS.PathFile 	= $(vQVDExtVtas);
+
+//-------------------------------------------------
+
+$(vS.TableName):
+    LOAD 
+        SalesKey, 
+        DateKey,
+        channelKey, 
+        StoreKey, 
+        ProductKey, 
+        PromotionKey, 
+        CurrencyKey, 
+        UnitCost, 
+        UnitPrice, 
+        SalesQuantity, 
+        ReturnQuantity, 
+        ReturnAmount, 
+        DiscountQuantity, 
+        DiscountAmount, 
+        TotalCost, 
+        SalesAmount;
+
+    SELECT 
+        *
+    FROM 
+        spanish.factsales;
+
+STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+
+DROP TABLE $(vS.TableName);
+

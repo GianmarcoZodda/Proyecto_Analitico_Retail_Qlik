@@ -1,0 +1,31 @@
+//-------------------------------------------------
+
+SET vS.TableName 	= [Dim_Geo_Clientes];
+SET vS.QVDFileName 	= L1_MYSQL_DIM_GEOGRAFIA.qvd;
+SET vS.PathFile 	= $(vQVDExtVtas);
+
+//-------------------------------------------------
+
+
+$(vS.TableName):
+    LOAD 
+        GeographyKey, 
+        GeographyTypeKey, 
+        GeographyType, 
+        ContinentName, 
+        CityName, 
+        StateProvinceName, 
+        RegionCountryName, 
+        Geometry, 
+        ETLLoadID, 
+        LoadDate, 
+        UpdateDate;
+
+    SELECT 
+        *
+    FROM 
+        spanish.dimgeography;
+
+	STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+    
+    DROP TABLE $(vS.TableName);

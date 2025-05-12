@@ -1,0 +1,32 @@
+# Archivos binarios de Qlik (muy pesados)
+*.qvf
+*.qvd
+
+# Videos o demos grandes
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# Archivos temporales de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos temporales de edición
+*.bak
+*.tmp
+*.swp
+
+# Archivos generados por Excel o temporales de Office
+~$*
+
+# Archivos de entorno / IDEs
+.vscode/
+.idea/
+*.log
+
+# Archivos ocultos de Git
+.gitkeep.txt
+
+

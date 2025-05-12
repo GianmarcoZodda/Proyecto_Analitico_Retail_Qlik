@@ -1,0 +1,35 @@
+
+//-------------------------------------------------
+
+SET vS.TableName 	= [Dim_RFM];
+SET vS.QVDFileName 	= L1_MYSQL_DIM_RFM.qvd;
+SET vS.PathFile 	= $(vQVDExtVtas);
+
+//-------------------------------------------------
+
+$(vS.TableName):
+    LOAD 
+        CustomerKey, 
+        Transac, 
+        FirstPurchasedate, 
+        LastPurchasedate, 
+        TotalRevenue, 
+        TileNumR, 
+        TileNumF, 
+        TileNumM, 
+        R_FLAG, 
+        F_FLAG, 
+        M_FLAG, 
+        RFM_Score, 
+        TAG, 
+        ACTIVITY, 
+        ACTIONABLE_TIP;
+
+    SELECT 
+        *
+    FROM 
+        spanish.RFM;
+
+	STORE $(vS.TableName) INTO [$(vS.PathFile)/$(vS.QVDFileName)] (qvd);
+    
+    DROP TABLE $(vS.TableName);
