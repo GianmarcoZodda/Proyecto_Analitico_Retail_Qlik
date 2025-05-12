@@ -68,7 +68,7 @@ Con este enlace podras ver las diferentes hojas del dashboard: 🔗 [Dashboard-Q
 
 **Gianmarco**  
 Bootcamp de Análisis de Datos – *Jupi Digital* (2025)  
-🔗 [LinkedIn](www.linkedin.com/in/gianmarcozodda) 
+🔗 [LinkedIn](https://www.linkedin.com/in/gianmarcozodda) 
 
 ---
 
