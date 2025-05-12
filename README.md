@@ -58,7 +58,7 @@ El archivo .pdf tiene un breve resumen de la forma de trabajo mediante las 3 cap
 
 ## 🎥 Enlace a Qlik 
 
-Con este enlace podras ver las diferentes hojas del dashboard: 🔗 [Dashboard-Qlik](jupidigital.us.qlikcloud.com/catalog?space_filter=681e90850d939e8066b88d0e)  
+Con este enlace podras ver las diferentes hojas del dashboard: 🔗 [Dashboard-Qlik](https://jupidigital.us.qlikcloud.com/catalog?space_filter=681e90850d939e8066b88d0e)  
 
 (me estuvo dando problemas, si no pudiste visualizarlo correctamente, no dudes en contactarme a mi gmail, zoddagj@gmail.com, estare agradecido de ser notificado, asi tambien de recibir comentarios y sugerencias)
 
